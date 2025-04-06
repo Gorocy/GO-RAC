@@ -179,5 +179,10 @@ func (m *Manager) Search(dbName string, query []float32, k int) ([]Vector, error
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
-	return db.Graph.Search(query, k), nil
+	results, err := db.Graph.Search(query, k)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

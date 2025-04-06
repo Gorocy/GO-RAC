@@ -29,7 +29,10 @@ func TestHNSWInsertAndSearch(t *testing.T) {
 
 	// Insert vectors
 	for _, vector := range vectors {
-		graph.Insert(vector)
+		err := graph.Insert(vector)
+		if err != nil {
+			t.Fatalf("Insert failed: %v", err)
+		}
 	}
 
 	// Test search
@@ -40,7 +43,10 @@ func TestHNSWInsertAndSearch(t *testing.T) {
 
 	// Search for nearest neighbors with smaller k
 	k := 5
-	results := graph.Search(query, k)
+	results, err := graph.Search(query, k)
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
 
 	// Verify results
 	if len(results) != k {
@@ -80,7 +86,10 @@ func TestHNSWConcurrentOperations(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		go func(start, end int) {
 			for j := start; j < end; j++ {
-				graph.Insert(vectors[j])
+				err := graph.Insert(vectors[j])
+				if err != nil {
+					t.Errorf("Insert failed: %v", err)
+				}
 			}
 			done <- true
 		}(i*50, (i+1)*50)
@@ -99,7 +108,12 @@ func TestHNSWConcurrentOperations(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		go func() {
-			results := graph.Search(query, 5)
+			results, err := graph.Search(query, 5)
+			if err != nil {
+				t.Errorf("Search failed: %v", err)
+				done <- true
+				return
+			}
 			if len(results) != 5 {
 				t.Errorf("Expected 5 results, got %d", len(results))
 			}
@@ -138,7 +152,10 @@ func TestHNSWDifferentDistanceMetrics(t *testing.T) {
 	for _, metric := range metrics {
 		graph := NewHNSWGraph(8, 100, metric)
 		for _, vector := range vectors {
-			graph.Insert(vector)
+			err := graph.Insert(vector)
+			if err != nil {
+				t.Errorf("Insert failed for metric %v: %v", metric, err)
+			}
 		}
 
 		query := make([]float32, dimensions)
@@ -146,7 +163,11 @@ func TestHNSWDifferentDistanceMetrics(t *testing.T) {
 			query[i] = rand.Float32()
 		}
 
-		results := graph.Search(query, 5)
+		results, err := graph.Search(query, 5)
+		if err != nil {
+			t.Errorf("Search failed for metric %v: %v", metric, err)
+			continue
+		}
 		if len(results) != 5 {
 			t.Errorf("Expected 5 results for metric %v, got %d", metric, len(results))
 		}

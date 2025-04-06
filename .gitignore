@@ -16,3 +16,15 @@ vendor/
 
 *.swp
 *.DS_Store
+
+db/test_hnsw/
+db/test_hnsw_results/
+
+create_sample_embeddings
+testdata/create_sample_embeddings
+
+*.bin
+testdata/*.bin
+testdata/GoogleNews-vectors-negative300.bin
+
+*.csv
